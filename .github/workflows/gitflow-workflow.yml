@@ -1,0 +1,54 @@
+name: GitFlow Pull Request Validator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+      - 'release/*'
+      - 'hotfix/*'
+
+jobs:
+  validate-gitflow:
+    name: Validate GitFlow Branch Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate GitFlow Branching Rules
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Get source and target branch names from the PR event context
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+
+          echo "🔍 Validating GitFlow rules..."
+          echo "📂 PR source branch: $SOURCE_BRANCH"
+          echo "📁 PR target branch: $TARGET_BRANCH"
+
+          fail() {
+            echo "❌ ERROR: $1"
+            exit 1
+          }
+
+          if [[ "$TARGET_BRANCH" == "main" ]]; then
+            if ! [[ "$SOURCE_BRANCH" =~ ^(release|hotfix)/.+$ ]]; then
+              fail "PRs targeting 'main' must come from a 'release/*' or 'hotfix/*' branch."
+            fi
+          fi
+
+          if [[ "$TARGET_BRANCH" == "develop" ]]; then
+            if ! [[ "$SOURCE_BRANCH" =~ ^(feature|release|hotfix)/.+$ ]]; then
+              fail "PRs targeting 'develop' must come from 'feature/*', 'release/*', or 'hotfix/*' branches."
+            fi
+          fi
+
+          if [[ "$TARGET_BRANCH" =~ ^release/.+ ]]; then
+            if [[ "$SOURCE_BRANCH" != "develop" && ! "$SOURCE_BRANCH" =~ ^hotfix/.+ ]]; then
+              fail "PRs targeting 'release/*' branches must come from 'develop' or 'hotfix/*' branches."
+            fi
+          fi
+
+          echo "✅ GitFlow branch rules validation passed successfully."
