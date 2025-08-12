@@ -15,6 +15,14 @@ def health():
             'checks': []
         }
     )
+@app.route('/healthz', methods=['GET'])
+def health():
+    return jsonify(
+        {
+            'status': 'UP',
+            'checks': []
+        }
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
