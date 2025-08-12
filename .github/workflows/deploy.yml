@@ -22,7 +22,13 @@ jobs:
 
       - name: build and push to ACR
         run: |
-          az acr build --registry mibancoacr --image mibanco:${{ github.sha }} --file app/Dockerfile .
+          # az acr build --registry mibancoacr --image mibanco:${{ github.sha }} --file app/Dockerfile .
+          az acr login --name mibancoacr
+
+          ACR_NAME=$(az acr show -n mibancoacr --query loginServer -o tsv)
+
+          docker build -t $ACR_NAME/mibanco:${GITHUB_SHA} -f app/Dockerfile .
+          docker push $ACR_NAME/mibanco:${GITHUB_SHA}
 
       # - name: Docker Login
       #   uses: azure/docker-login@v1
