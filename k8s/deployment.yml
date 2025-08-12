@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mibanco
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mibanco
+  template:
+    metadata:
+      labels:
+        app: mibanco
+    spec:
+      containers:
+      - name: mibanco
+        image: mibancoacr.azurecr.io/mibanco:latest
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
